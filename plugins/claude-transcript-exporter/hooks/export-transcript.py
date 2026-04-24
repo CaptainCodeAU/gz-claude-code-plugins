@@ -3,6 +3,7 @@
 
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -30,13 +31,18 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["claude-code-transcripts", "json", transcript_path, "-o", output_dir, "-a", "--json"],
             timeout=10,
             capture_output=True,
         )
     except (subprocess.TimeoutExpired, OSError):
-        pass
+        return
+
+    if result.returncode == 0:
+        session_dir = os.path.join(output_dir, pathlib.Path(transcript_path).stem)
+        open_target = session_dir if os.path.isdir(session_dir) else output_dir
+        subprocess.Popen(["open", open_target])
 
 
 if __name__ == "__main__":

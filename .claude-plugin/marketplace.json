@@ -1,0 +1,16 @@
+{
+	"$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+	"name": "gz-claude-code-plugins",
+	"description": "G's Claude Code plugin marketplace",
+	"owner": {
+		"name": "Gavin"
+	},
+	"plugins": [
+		{
+			"name": "claude-transcript-exporter",
+			"description": "Exports Claude Code session transcripts on session end",
+			"source": "./plugins/claude-transcript-exporter",
+			"category": "productivity"
+		}
+	]
+}

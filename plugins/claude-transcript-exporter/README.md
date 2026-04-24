@@ -31,5 +31,5 @@ Set `TRANSCRIPT_EXPORT_DIR` in your shell profile or in Claude Code's `settings.
 
 ## Dependencies
 
-- Python 3.7+ (stdlib only)
+- Python 3.7+ via [uv](https://docs.astral.sh/uv/) (stdlib only)
 - [`claude-code-transcripts`](https://github.com/anthropics/claude-code-transcripts) CLI on PATH

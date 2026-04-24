@@ -1,0 +1,16 @@
+{
+  "description": "Export session transcripts on session end",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/export-transcript.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

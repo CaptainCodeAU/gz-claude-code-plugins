@@ -1,0 +1,7 @@
+{
+  "name": "claude-transcript-exporter",
+  "description": "Exports Claude Code session transcripts on session end",
+  "author": {
+    "name": "Gavin"
+  }
+}

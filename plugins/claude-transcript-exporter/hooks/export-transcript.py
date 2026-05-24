@@ -104,8 +104,9 @@ def notify_macos(title, message):
         escaped_msg = message.replace('"', '\\"')
         escaped_title = title.replace('"', '\\"')
         subprocess.Popen([
-            "osascript", "-e",
-            f'display notification "{escaped_msg}" with title "{escaped_title}"',
+            "osascript",
+            "-e", f'set the clipboard to "{escaped_msg}"',
+            "-e", f'display notification "{escaped_msg}" with title "{escaped_title}"',
         ])
     except OSError:
         pass

@@ -196,14 +196,6 @@ def main():
 
     uuid = pathlib.Path(transcript_path).stem
     session_dir = os.path.join(project_dir, uuid)
-    if os.path.isdir(session_dir):
-        elapsed = int((time.time() - start) * 1000)
-        report(session_id, project, "skipped", "already exported", elapsed, source, resolved_cwd)
-        try:
-            subprocess.Popen(["open", session_dir])
-        except OSError:
-            pass
-        return
 
     os.makedirs(project_dir, exist_ok=True)
 

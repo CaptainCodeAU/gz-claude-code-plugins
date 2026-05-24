@@ -168,14 +168,74 @@ The script:
 
 1. Reads stdin JSON from Claude Code (see SessionEnd Payload Reference below)
 2. Validates the transcript file exists at `transcript_path`
-3. Reads output directory from `TRANSCRIPT_EXPORT_DIR` env var
+3. Resolves the project name via fallback chain (see Project Resolution below)
+4. Reads output directory from `TRANSCRIPT_EXPORT_DIR` env var
    (defaults to `~/CODE/my-claude-code-transcripts`)
-4. Creates the output directory if it doesn't exist (`os.makedirs(dir, exist_ok=True)`)
-5. Runs `claude-code-transcripts json <path> -o <output-dir> -a --json`
-6. Exits 0 always (never blocks session end)
-7. Skips if `SKIP_SESSION_END_HOOK=1` is set
+5. Creates `<output-dir>/<project-name>/` if needed
+6. Skips if session already exported (duplicate detection)
+7. Runs `claude-code-transcripts json <path> -o <project-dir> -a --json`
+8. Reports outcome via macOS notification, voice server, and JSONL log
+9. Opens the exported session folder in Finder on success
+10. Exits 0 always (never blocks session end)
+11. Skips entirely if `SKIP_SESSION_END_HOOK=1` is set
 
-If `claude-code-transcripts` is not on PATH, the hook exits silently without error.
+All failures are reported (never silent). The hook still exits 0 to avoid blocking
+session end, but errors are visible via notification, voice, and log.
+
+### Project Resolution
+
+The plugin determines which project folder to export into using a fallback chain:
+
+1. **Transcript path parent directory** (primary) — the `~/.claude/projects/`
+   encoded folder name. This is the exact same input the `all` command passes to
+   `get_project_display_name()`, guaranteeing consistent archive folder names
+   between plugin exports and batch exports.
+2. **SessionEnd payload `cwd`** — from the hook's stdin JSON payload, encoded to
+   match Claude Code's path conventions (both `/` and `_` replaced with `-`).
+3. **JSONL `cwd` field** — reads the first entry with a non-empty `cwd` from the
+   transcript JSONL, with the same encoding applied.
+4. **`_unresolved/`** — final fallback to avoid root-level orphan folders.
+
+### `get_project_display_name()`
+
+Reimplemented from `claude-code-transcripts` CLI (~25 lines, pure function).
+Converts an encoded folder name like `-Users-fonzarelli-CODE-CaptainCodeAU-Tax-Bhencho`
+into `CaptainCodeAU-Tax-Bhencho`:
+
+1. Strip OS prefixes: `-Users-`, `-home-`, `-mnt-c-Users-`, `-mnt-c-users-`
+2. Split on `-`
+3. Skip first part if it looks like a username (when common dirs appear later)
+4. Skip common dirs: `projects`, `code`, `repos`, `src`, `dev`, `work`, `documents`
+5. Join remaining parts with `-`
+6. Fallback: last non-empty part, or original name
+
+### Output Structure
+
+```
+~/CODE/my-claude-code-transcripts/
+  CaptainCodeAU-Tax-Bhencho/
+    f1a2a7f0-5057-.../
+      index.html
+      page-001.html
+      f1a2a7f0-5057-...jsonl
+  fonzarelli-claude/
+    ...
+  _unresolved/              # Sessions where project could not be determined
+    ...
+```
+
+### Error Reporting
+
+Every export attempt is reported three ways:
+
+1. **macOS notification** — `osascript display notification` with title "Claude Transcripts"
+   - Success: "Session exported → ProjectName"
+   - Failure: "Export failed: reason"
+2. **Voice server** — POST to `localhost:8888/notify`
+   - Success: speaks project name
+   - Failure: speaks error reason
+3. **JSONL log file** — `~/.claude/logs/transcript-export.log`
+   - One JSON line per attempt: `ts`, `session_id`, `project`, `status`, `error`, `duration_ms`
 
 ## Configuration
 

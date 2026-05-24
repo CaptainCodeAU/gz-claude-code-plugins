@@ -10,7 +10,12 @@ import subprocess
 import sys
 import time
 
-DEFAULT_OUTPUT_DIR = os.path.expanduser("~/CODE/my-claude-code-transcripts")
+IS_MACOS = sys.platform == "darwin"
+
+if IS_MACOS:
+    DEFAULT_OUTPUT_DIR = os.path.expanduser("~/CODE/my-claude-code-transcripts")
+else:
+    DEFAULT_OUTPUT_DIR = os.path.expanduser("~/my-claude-code-transcripts")
 LOG_FILE = os.path.expanduser("~/.claude/logs/transcript-export.log")
 VOICE_URL = "http://localhost:8888/notify"
 VOICE_ID = "fTtv3eikoepIosk8dTZ5"
@@ -99,14 +104,25 @@ def resolve_project_name(transcript_path, payload_cwd):
     return "_unresolved", "unresolved"
 
 
-def notify_macos(title, message):
+def notify_desktop(title, message):
     try:
-        escaped_msg = message.replace('"', '\\"')
-        escaped_title = title.replace('"', '\\"')
-        subprocess.Popen([
-            "osascript", "-e",
-            f'display notification "{escaped_msg}" with title "{escaped_title}"',
-        ])
+        if IS_MACOS:
+            escaped_msg = message.replace('"', '\\"')
+            escaped_title = title.replace('"', '\\"')
+            subprocess.Popen([
+                "osascript", "-e",
+                f'display notification "{escaped_msg}" with title "{escaped_title}"',
+            ])
+        else:
+            subprocess.Popen(["notify-send", title, message])
+    except OSError:
+        pass
+
+
+def open_folder(path):
+    try:
+        cmd = ["open", path] if IS_MACOS else ["xdg-open", path]
+        subprocess.Popen(cmd)
     except OSError:
         pass
 
@@ -153,13 +169,13 @@ def log_entry(session_id, project, status, error="", duration_ms=0, source="", c
 def report(session_id, project, status, error="", duration_ms=0, source="", cwd=""):
     log_entry(session_id, project, status, error, duration_ms, source, cwd)
     if status == "ok":
-        notify_macos("Claude Transcripts", f"Session exported → {project}")
+        notify_desktop("Claude Transcripts", f"Session exported → {project}")
         notify_voice(f"Transcript exported to {project}")
     elif status == "skipped":
-        notify_macos("Claude Transcripts", f"Session already exported → {project}")
+        notify_desktop("Claude Transcripts", f"Session already exported → {project}")
     else:
         reason = error or "unknown error"
-        notify_macos("Claude Transcripts", f"Export failed: {reason}")
+        notify_desktop("Claude Transcripts", f"Export failed: {reason}")
         notify_voice(f"Transcript export failed. {reason}")
 
 
@@ -185,8 +201,8 @@ def main():
         report(session_id, None, "error", "transcript file missing")
         return
 
-    if not shutil.which("claude-code-transcripts"):
-        report(session_id, None, "error", "CLI not found on PATH")
+    if not shutil.which("uv"):
+        report(session_id, None, "error", "uv not found on PATH")
         return
 
     project, source = resolve_project_name(transcript_path, payload_cwd)
@@ -206,10 +222,7 @@ def main():
             if source_size == exported_size:
                 elapsed = int((time.time() - start) * 1000)
                 report(session_id, project, "skipped", "already exported (unchanged)", elapsed, source, resolved_cwd)
-                try:
-                    subprocess.Popen(["open", session_dir])
-                except OSError:
-                    pass
+                open_folder(session_dir)
                 return
     except OSError:
         pass
@@ -223,7 +236,7 @@ def main():
 
     try:
         result = subprocess.run(
-            ["claude-code-transcripts", "json", transcript_path, "-o", project_dir, "-a", "--json"],
+            ["uv", "tool", "run", "claude-code-transcripts", "json", transcript_path, "-o", project_dir, "-a", "--json"],
             timeout=10,
             capture_output=True,
         )
@@ -246,10 +259,7 @@ def main():
     report(session_id, project, "ok", "", elapsed, source, resolved_cwd)
 
     open_target = session_dir if os.path.isdir(session_dir) else project_dir
-    try:
-        subprocess.Popen(["open", open_target])
-    except OSError:
-        pass
+    open_folder(open_target)
 
 
 if __name__ == "__main__":

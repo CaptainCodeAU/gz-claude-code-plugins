@@ -104,9 +104,8 @@ def notify_macos(title, message):
         escaped_msg = message.replace('"', '\\"')
         escaped_title = title.replace('"', '\\"')
         subprocess.Popen([
-            "osascript",
-            "-e", f'set the clipboard to "{escaped_msg}"',
-            "-e", f'display notification "{escaped_msg}" with title "{escaped_title}"',
+            "osascript", "-e",
+            f'display notification "{escaped_msg}" with title "{escaped_title}"',
         ])
     except OSError:
         pass
@@ -200,6 +199,10 @@ def main():
     if os.path.isdir(session_dir):
         elapsed = int((time.time() - start) * 1000)
         report(session_id, project, "skipped", "already exported", elapsed, source, resolved_cwd)
+        try:
+            subprocess.Popen(["open", session_dir])
+        except OSError:
+            pass
         return
 
     os.makedirs(project_dir, exist_ok=True)

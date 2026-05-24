@@ -237,7 +237,7 @@ def main():
     try:
         result = subprocess.run(
             ["uv", "tool", "run", "claude-code-transcripts", "json", transcript_path, "-o", project_dir, "-a", "--json"],
-            timeout=10,
+            timeout=30,
             capture_output=True,
         )
     except subprocess.TimeoutExpired:

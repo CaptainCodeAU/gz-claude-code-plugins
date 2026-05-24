@@ -119,7 +119,7 @@ def notify_voice(message):
             "voice_enabled": True,
         })
         subprocess.Popen([
-            "curl", "-s", "-X", "POST", VOICE_URL,
+            "curl", "-s", "--connect-timeout", "2", "-X", "POST", VOICE_URL,
             "-H", "Content-Type: application/json",
             "-d", payload,
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -199,19 +199,27 @@ def main():
 
     exported_index = os.path.join(session_dir, "index.html")
     exported_jsonl = os.path.join(session_dir, uuid + ".jsonl")
-    if os.path.isfile(exported_index) and os.path.isfile(exported_jsonl):
-        source_size = os.path.getsize(transcript_path)
-        exported_size = os.path.getsize(exported_jsonl)
-        if source_size == exported_size:
-            elapsed = int((time.time() - start) * 1000)
-            report(session_id, project, "skipped", "already exported (unchanged)", elapsed, source, resolved_cwd)
-            try:
-                subprocess.Popen(["open", session_dir])
-            except OSError:
-                pass
-            return
+    try:
+        if os.path.isfile(exported_index) and os.path.isfile(exported_jsonl):
+            source_size = os.path.getsize(transcript_path)
+            exported_size = os.path.getsize(exported_jsonl)
+            if source_size == exported_size:
+                elapsed = int((time.time() - start) * 1000)
+                report(session_id, project, "skipped", "already exported (unchanged)", elapsed, source, resolved_cwd)
+                try:
+                    subprocess.Popen(["open", session_dir])
+                except OSError:
+                    pass
+                return
+    except OSError:
+        pass
 
-    os.makedirs(project_dir, exist_ok=True)
+    try:
+        os.makedirs(project_dir, exist_ok=True)
+    except OSError as e:
+        elapsed = int((time.time() - start) * 1000)
+        report(session_id, project, "error", f"cannot create output dir: {e}", elapsed, source, resolved_cwd)
+        return
 
     try:
         result = subprocess.run(

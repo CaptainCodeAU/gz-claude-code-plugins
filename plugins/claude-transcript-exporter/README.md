@@ -5,7 +5,7 @@ Exports Claude Code session transcripts on session end into project-organized fo
 When a Claude Code session ends (for any reason), this plugin:
 1. Determines the project from the session's JSONL `cwd` field
 2. Exports the transcript into `<output_dir>/<project_name>/<session_uuid>/`
-3. Reports success/failure via macOS notification, voice, and log file
+3. Reports success/failure via desktop notification, voice, and log file
 
 ## Output structure
 
@@ -31,7 +31,7 @@ The plugin determines the project folder name using a fallback chain:
 ## Error reporting
 
 Every export attempt is reported three ways:
-- **macOS notification** — "Session exported → ProjectName" or "Export failed: reason"
+- **Desktop notification** — macOS (`osascript`) or Linux (`notify-send`)
 - **Voice** — speaks via voice server at `localhost:8888`
 - **Log file** — JSONL at `~/.claude/logs/transcript-export.log`
 
@@ -55,7 +55,7 @@ claude --plugin-dir ./plugins/claude-transcript-exporter
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TRANSCRIPT_EXPORT_DIR` | `~/CODE/my-claude-code-transcripts` | Output directory for exported transcripts |
+| `TRANSCRIPT_EXPORT_DIR` | `~/CODE/my-claude-code-transcripts` (macOS), `~/my-claude-code-transcripts` (Linux) | Output directory for exported transcripts |
 | `SKIP_SESSION_END_HOOK` | unset | Set to `1` to disable the export hook |
 
 Set `TRANSCRIPT_EXPORT_DIR` in your shell profile or in Claude Code's `settings.json` env section.
@@ -63,4 +63,4 @@ Set `TRANSCRIPT_EXPORT_DIR` in your shell profile or in Claude Code's `settings.
 ## Dependencies
 
 - Python 3.7+ via [uv](https://docs.astral.sh/uv/) (stdlib only)
-- [`claude-code-transcripts`](https://github.com/CaptainCodeAU/claude-code-transcripts) CLI on PATH
+- [`claude-code-transcripts`](https://github.com/CaptainCodeAU/claude-code-transcripts) CLI via `uv tool install` (optional -- auto-fetched via `uv tool run` if not installed)

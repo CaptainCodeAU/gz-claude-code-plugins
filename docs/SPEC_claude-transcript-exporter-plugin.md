@@ -228,8 +228,8 @@ into `CaptainCodeAU-Tax-Bhencho`:
 
 Every export attempt is reported three ways:
 
-1. **macOS notification** — `osascript display notification` with title "Claude Transcripts"
-   - Success: "Session exported → ProjectName"
+1. **Desktop notification** — macOS (`osascript`) or Linux (`notify-send`) with title "Claude Transcripts"
+   - Success: "Session exported -> ProjectName"
    - Failure: "Export failed: reason"
 2. **Voice server** — POST to `localhost:8888/notify`
    - Success: speaks project name
@@ -239,7 +239,8 @@ Every export attempt is reported three ways:
 
 ## Configuration
 
-The output directory defaults to `~/CODE/my-claude-code-transcripts`.
+The output directory defaults to `~/CODE/my-claude-code-transcripts` on macOS and
+`~/my-claude-code-transcripts` on Linux.
 
 Users can override it by setting the `TRANSCRIPT_EXPORT_DIR` environment variable
 (e.g., in their shell profile or in Claude Code's `settings.json` env section).
@@ -247,7 +248,7 @@ Users can override it by setting the `TRANSCRIPT_EXPORT_DIR` environment variabl
 ## Dependencies
 
 - Python 3.7+ (stdlib only, no pip packages)
-- `claude-code-transcripts` CLI must be on PATH (currently at `~/.local/bin/claude-code-transcripts`)
+- `claude-code-transcripts` CLI via `uv tool install` (optional -- auto-fetched via `uv tool run` if not installed)
 
 ## SessionEnd Payload Reference
 

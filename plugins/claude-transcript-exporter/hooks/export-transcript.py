@@ -197,6 +197,20 @@ def main():
     uuid = pathlib.Path(transcript_path).stem
     session_dir = os.path.join(project_dir, uuid)
 
+    exported_index = os.path.join(session_dir, "index.html")
+    exported_jsonl = os.path.join(session_dir, uuid + ".jsonl")
+    if os.path.isfile(exported_index) and os.path.isfile(exported_jsonl):
+        source_size = os.path.getsize(transcript_path)
+        exported_size = os.path.getsize(exported_jsonl)
+        if source_size == exported_size:
+            elapsed = int((time.time() - start) * 1000)
+            report(session_id, project, "skipped", "already exported (unchanged)", elapsed, source, resolved_cwd)
+            try:
+                subprocess.Popen(["open", session_dir])
+            except OSError:
+                pass
+            return
+
     os.makedirs(project_dir, exist_ok=True)
 
     try:

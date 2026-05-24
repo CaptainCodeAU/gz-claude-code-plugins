@@ -1,14 +1,15 @@
 {
 	"$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
 	"name": "gz-claude-code-plugins",
-	"description": "G's Claude Code plugin marketplace",
+	"description": "Gavin's personal Claude Code plugin marketplace — first-party plugins and curated third-party tools",
 	"owner": {
-		"name": "Gavin"
+		"name": "Gavin",
+		"url": "https://github.com/CaptainCodeAU"
 	},
 	"plugins": [
 		{
 			"name": "claude-transcript-exporter",
-			"description": "Exports Claude Code session transcripts on session end",
+			"description": "Exports session transcripts into project-organized folders with error reporting via macOS notifications, voice, and JSONL logging",
 			"source": "./plugins/claude-transcript-exporter",
 			"category": "productivity"
 		}

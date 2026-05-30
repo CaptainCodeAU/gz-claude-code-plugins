@@ -22,6 +22,10 @@ env.setdefault(
 # Voice notifications are opt-in on the flagship side; preserve the current setup.
 env.setdefault("TRANSCRIPT_VOICE_URL", "http://localhost:8888/notify")
 env.setdefault("TRANSCRIPT_VOICE_ID", "fTtv3eikoepIosk8dTZ5")
+# Reveal the session folder in Finder after capture/render (restores the
+# open-on-export behavior the old plugin had natively; the render child opens
+# AFTER HTML is on disk, the hook opens on the skip branch).
+env.setdefault("TRANSCRIPT_OPEN_FOLDER", "1")
 
 # Forward the SessionEnd payload (stdin) straight through to the CLI hook.
 # env=env is REQUIRED — without it the child inherits the unmodified os.environ
